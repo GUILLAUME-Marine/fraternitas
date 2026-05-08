@@ -4,16 +4,17 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Non autorisé." }, { status: 401 });
 
-  // Verify membership
+  const { id } = await context.params;
+
   const member = await prisma.conversationMember.findUnique({
     where: {
       conversationId_userId: {
-        conversationId: params.id,
+        conversationId: id,
         userId: session.user.id,
       },
     },
@@ -26,7 +27,7 @@ export async function GET(
 
   const messages = await prisma.message.findMany({
     where: {
-      conversationId: params.id,
+      conversationId: id,
       deletedAt: null,
       ...(cursor ? { createdAt: { lt: new Date(cursor) } } : {}),
     },
@@ -37,11 +38,10 @@ export async function GET(
     take,
   });
 
-  // Mark as read
   await prisma.conversationMember.update({
     where: {
       conversationId_userId: {
-        conversationId: params.id,
+        conversationId: id,
         userId: session.user.id,
       },
     },
