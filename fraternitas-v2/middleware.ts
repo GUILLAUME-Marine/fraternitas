@@ -29,7 +29,7 @@ export default auth((req) => {
   }
 
   // Protect admin routes
-  if (isAdminRoute && session?.user?.role !== "ADMIN") {
+if (isAdminRoute && (session?.user as any)?.role !== "ADMIN") {
     return NextResponse.redirect(new URL("/dashboard", nextUrl));
   }
 
