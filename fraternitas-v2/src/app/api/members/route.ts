@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
       ],
     },
   });
-  const blockedIds = blocks.map((b) => (b.blockerId === session.user.id ? b.blockedId : b.blockerId));
+const blockedIds = blocks.map((b) => (b.blockerId === session.user!.id ? b.blockedId : b.blockerId));
 
   const members = await prisma.user.findMany({
     where: {
