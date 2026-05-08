@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --gold: #B8973A;
+    --gold-l: #D4AF5A;
+    --gold-p: #F0E3C0;
+    --ink: #111009;
+    --cream: #F7F3EC;
+    --cream-2: #EEE8DA;
+  }
+
+  * { box-sizing: border-box; }
+  
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display), Georgia, serif;
+    letter-spacing: -0.025em;
+  }
+
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(17,16,9,0.15); border-radius: 99px; }
+}
+
+@layer utilities {
+  .font-display { font-family: var(--font-display), Georgia, serif; }
+  .font-body { font-family: var(--font-body), system-ui, sans-serif; }
+  .bg-cream { background-color: #F7F3EC; }
+  .bg-cream-2 { background-color: #EEE8DA; }
+  .text-ink { color: #111009; }
+  .text-gold { color: #B8973A; }
+  .border-ink-15 { border-color: rgba(17,16,9,0.15); }
+  
+  .gold-gradient {
+    background: linear-gradient(135deg, #D4AF5A, #B8973A);
+  }
+  
+  .text-gradient-gold {
+    background: linear-gradient(135deg, #D4AF5A, #B8973A);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .card-hover {
+    @apply transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg;
+  }
+}
