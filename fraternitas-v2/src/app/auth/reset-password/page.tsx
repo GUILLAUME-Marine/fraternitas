@@ -9,7 +9,6 @@ import { motion } from "framer-motion";
 import { Eye, EyeOff, Lock, CheckCircle } from "lucide-react";
 import { resetPasswordSchema, type ResetPasswordInput } from "@/lib/validation/schemas";
 
-type ResetPasswordInput = { password: string; confirmPassword: string };
 
 function ResetForm() {
   const router = useRouter();
