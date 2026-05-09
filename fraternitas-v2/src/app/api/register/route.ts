@@ -80,10 +80,10 @@ export async function POST(req: NextRequest) {
       { message: "Compte créé. Vérifiez votre email." },
       { status: 201 }
     );
-  } catch (error) {
-    console.error("[REGISTER_ERROR]", error);
+  } catch (error: any) {
+    console.error("[REGISTER_ERROR]", error?.message, error?.code);
     return NextResponse.json(
-      { error: "Une erreur est survenue. Veuillez réessayer." },
+      { error: error?.message || "Une erreur est survenue." },
       { status: 500 }
     );
   }
