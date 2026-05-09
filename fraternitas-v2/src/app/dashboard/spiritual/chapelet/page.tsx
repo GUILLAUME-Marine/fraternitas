@@ -238,6 +238,109 @@ export default function ChapeletPage() {
   const [silenceLeft, setSilenceLeft] = useState(120);
   const [openDebut, setOpenDebut] = useState<number | null>(null);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+
+
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const masterGainRef = useRef<GainNode | null>(null);
+  const audioNodesRef = useRef<AudioScheduledSourceNode[]>([]);
+  const [soundMode, setSoundMode] = useState<"silence" | "gregorian" | "marial">("silence");
+ 
+  function getAudioCtx(): AudioContext {
+    if (!audioCtxRef.current) {
+      const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      audioCtxRef.current = new AC();
+      masterGainRef.current = audioCtxRef.current.createGain();
+      masterGainRef.current.connect(audioCtxRef.current.destination);
+      masterGainRef.current.gain.setValueAtTime(0, audioCtxRef.current.currentTime);
+    }
+    return audioCtxRef.current;
+  }
+ 
+  function stopAllAudio(immediate = false) {
+    const ctx = audioCtxRef.current;
+    const mg = masterGainRef.current;
+    if (!ctx || !mg) return;
+    const t = ctx.currentTime;
+    if (immediate) {
+      mg.gain.cancelScheduledValues(t);
+      mg.gain.setValueAtTime(0, t);
+      audioNodesRef.current.forEach(n => { try { n.stop(t + 0.01); } catch { /* ok */ } });
+      audioNodesRef.current = [];
+    } else {
+      mg.gain.cancelScheduledValues(t);
+      mg.gain.setValueAtTime(mg.gain.value, t);
+      mg.gain.linearRampToValueAtTime(0, t + 1.8);
+      const toStop = [...audioNodesRef.current]; audioNodesRef.current = [];
+      setTimeout(() => toStop.forEach(n => { try { n.stop(); } catch { /* ok */ } }), 2200);
+    }
+  }
+ 
+  function playGregorian() {
+    const ctx = getAudioCtx(); stopAllAudio(true);
+    const t = ctx.currentTime;
+    masterGainRef.current!.gain.setValueAtTime(0, t);
+    masterGainRef.current!.gain.linearRampToValueAtTime(0.85, t + 2.5);
+    const partials = [
+      { mult: 1, gain: 0.38, vibAmt: 0.6, vibRate: 0.11 },
+      { mult: 2, gain: 0.22, vibAmt: 0.8, vibRate: 0.15 },
+      { mult: 3, gain: 0.12, vibAmt: 1.0, vibRate: 0.13 },
+      { mult: 4, gain: 0.07, vibAmt: 0.5, vibRate: 0.17 },
+      { mult: 5, gain: 0.04, vibAmt: 0.4, vibRate: 0.19 },
+    ];
+    partials.forEach(p => {
+      const osc = ctx.createOscillator(); const g = ctx.createGain();
+      const lfo = ctx.createOscillator(); const lg = ctx.createGain();
+      osc.type = "sine"; osc.frequency.setValueAtTime(110 * p.mult, t);
+      lfo.type = "sine"; lfo.frequency.setValueAtTime(p.vibRate, t);
+      lg.gain.setValueAtTime(p.vibAmt, t); lfo.connect(lg); lg.connect(osc.frequency);
+      g.gain.setValueAtTime(p.gain, t); osc.connect(g); g.connect(masterGainRef.current!);
+      osc.start(t); lfo.start(t);
+      audioNodesRef.current.push(osc, lfo);
+    });
+    const osc2 = ctx.createOscillator(); const g2 = ctx.createGain();
+    osc2.type = "sine"; osc2.frequency.setValueAtTime(110.35, t);
+    g2.gain.setValueAtTime(0.16, t); osc2.connect(g2); g2.connect(masterGainRef.current!);
+    osc2.start(t); audioNodesRef.current.push(osc2);
+  }
+ 
+  function playMarial() {
+    const ctx = getAudioCtx(); stopAllAudio(true);
+    const t = ctx.currentTime;
+    masterGainRef.current!.gain.setValueAtTime(0, t);
+    masterGainRef.current!.gain.linearRampToValueAtTime(0.80, t + 2.2);
+    const voices = [
+      { freq: 98,    gain: 0.28, vibRate: 0.22, vibAmt: 1.8 },
+      { freq: 146.8, gain: 0.22, vibRate: 0.26, vibAmt: 2.2 },
+      { freq: 196,   gain: 0.18, vibRate: 0.20, vibAmt: 1.6 },
+      { freq: 220,   gain: 0.10, vibRate: 0.18, vibAmt: 1.0 },
+      { freq: 293.6, gain: 0.06, vibRate: 0.24, vibAmt: 0.8 },
+    ];
+    voices.forEach(v => {
+      const osc = ctx.createOscillator(); const g = ctx.createGain();
+      const lfo = ctx.createOscillator(); const lg = ctx.createGain();
+      osc.type = "sine"; osc.frequency.setValueAtTime(v.freq, t);
+      lfo.type = "sine"; lfo.frequency.setValueAtTime(v.vibRate, t);
+      lg.gain.setValueAtTime(v.vibAmt, t); lfo.connect(lg); lg.connect(osc.frequency);
+      g.gain.setValueAtTime(v.gain, t); osc.connect(g); g.connect(masterGainRef.current!);
+      osc.start(t); lfo.start(t);
+      audioNodesRef.current.push(osc, lfo);
+    });
+  }
+ 
+  function handleSoundChange(mode: "silence" | "gregorian" | "marial") {
+    setSoundMode(mode);
+    if (mode === "silence") stopAllAudio(false);
+    else if (mode === "gregorian") playGregorian();
+    else playMarial();
+  }
+ 
+  // Ajoute aussi ce useEffect pour nettoyer l'audio au démontage :
+  // (colle-le avec les autres useEffect existants)
+  useEffect(() => () => { stopAllAudio(true); }, []);
+ 
+
+
+  
   const silenceRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -511,7 +614,7 @@ export default function ChapeletPage() {
                 </div>
               )}
 
-              {/* Mystère cliquable */}
+            {/* Mystère cliquable */}
               <button onClick={() => setPhase("mystery-detail")} style={{
                 background: C.card, borderRadius: "13px", padding: "11px 14px",
                 border: `1.5px solid ${C.cardBorder}`, textAlign: "left", width: "100%", cursor: "pointer",
@@ -528,6 +631,17 @@ export default function ChapeletPage() {
                 </div>
                 <span style={{ fontSize: "11px", color: C.ink35, flexShrink: 0 }}>Méditer →</span>
               </button>
+ 
+              {/* Citation du mystère — visible directement ← NOUVEAU */}
+              <div style={{ padding: "0 2px" }}>
+                <p style={{
+                  fontFamily: C.serif, fontSize: "14px", fontWeight: 300,
+                  fontStyle: "italic", color: C.ink50, lineHeight: 1.6, margin: 0,
+                }}>
+                  {currentMystery.verse}
+                </p>
+              </div>
+ 
 
               {/* Prière courante */}
               <div style={{ background: C.cream, borderRadius: "13px", padding: "11px 14px", border: `1px solid ${C.goldBorder}` }}>
@@ -542,23 +656,37 @@ export default function ChapeletPage() {
                 </button>
               </div>
 
-              {/* Bouton grain — grand et clair */}
+
+                 {/* Bouton Amen — noir, grand, bien visible */}
               <button className="tap" onClick={advance} style={{
-                width: "100%", background: tapFeedback ? C.creamGold : C.card,
-                border: `2px solid ${tapFeedback ? C.gold : C.goldBorder}`,
-                borderRadius: "16px", padding: "16px 14px",
+                width: "100%",
+                background: tapFeedback ? "#2C1E08" : "#111009",
+                border: "none",
+                borderRadius: "16px", padding: "18px 14px",
                 display: "flex", flexDirection: "column", alignItems: "center", gap: "8px",
                 cursor: "pointer", fontFamily: C.sans,
-                boxShadow: tapFeedback ? `0 0 0 4px rgba(184,137,58,0.15)` : "none",
                 transition: "all .12s",
               }}>
-                <div style={{ width: "46px", height: "46px", borderRadius: "50%", background: C.creamGold, border: `1.5px solid ${C.goldBorder}`, display: "flex", alignItems: "center", justifyContent: "center", transform: tapFeedback ? "scale(.93)" : "scale(1)", transition: "transform .1s" }}>
-                  <CrossIcon size={20} />
+                <div style={{
+                  width: "46px", height: "46px", borderRadius: "50%",
+                  background: "rgba(196,154,60,0.15)",
+                  border: "1.5px solid rgba(196,154,60,0.40)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  transform: tapFeedback ? "scale(.93)" : "scale(1)",
+                  transition: "transform .1s",
+                }}>
+                  <CrossIcon size={20} color="#C49A3C" />
                 </div>
-                <span style={{ fontSize: "14px", fontWeight: 500, color: C.ink }}>
-                  {progress.grainIndex === 10 ? "Fin de dizaine" : "Grain suivant"}
+                <span style={{
+                  fontSize: "20px", fontWeight: 300, fontStyle: "italic",
+                  color: "#F5EFE4",
+                  fontFamily: "'Cormorant Garamond','Playfair Display',Georgia,serif",
+                  letterSpacing: "0.04em",
+                }}>
+                  {progress.grainIndex === 10 ? "Fin de dizaine — Amen" : "Amen"}
                 </span>
               </button>
+ 
 
               {/* Bas */}
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingBottom: "4px" }}>
@@ -566,9 +694,29 @@ export default function ChapeletPage() {
                   <div className="ba" style={{ width: "5px", height: "5px", borderRadius: "50%", background: C.gold }} />
                   <span style={{ fontSize: "11px", color: C.ink35, fontWeight: 300 }}>41 prient avec vous</span>
                 </div>
-                <button style={{ background: C.creamGold, border: `1px solid ${C.goldBorder}`, borderRadius: "99px", padding: "4px 11px", fontSize: "11px", color: "#6A4E20", cursor: "pointer", fontFamily: C.sans, fontWeight: 500 }}>
-                  ♪ Son
-                </button>
+
+<div style={{ display: "flex", gap: "5px" }}>
+                  {(["silence", "gregorian", "marial"] as const).map((mode, i) => (
+                    <button
+                      key={mode}
+                      onClick={() => handleSoundChange(mode)}
+                      style={{
+                        padding: "5px 8px", borderRadius: "7px",
+                        border: `1px solid ${soundMode === mode ? "#1A1410" : C.ink12}`,
+                        background: soundMode === mode ? "#1A1410" : "transparent",
+                        fontSize: "10px", fontWeight: soundMode === mode ? 500 : 400,
+                        color: soundMode === mode ? "#C49A3C" : C.ink50,
+                        cursor: "pointer", fontFamily: C.sans,
+                        transition: "all .15s",
+                      }}
+                    >
+                      {["Silence", "Plain-chant", "Marial"][i]}
+                    </button>
+                  ))}
+                </div>
+
+
+                
               </div>
             </div>
           </main>
