@@ -67,7 +67,7 @@ export async function sendWelcomeEmail(email: string, name: string) {
         </ul>
       `,
       ctaText: "Compléter mon profil",
-      ctaUrl: `${APP_URL}/onboarding`,
+ctaUrl: `${APP_URL}/dashboard/profile`,
       footer: "Vous recevez cet email car vous venez de créer un compte Fraternitas.",
     }),
   });
