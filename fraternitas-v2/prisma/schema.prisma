@@ -45,7 +45,8 @@ model User {
   loginHistory      LoginHistory[]
   intentions        Intention[]
   intentionPrayers  IntentionPrayer[]
-
+defunts           Defunt[]
+  defuntPrayers     DefuntPrayer[]
   @@index([email])
 }
 
