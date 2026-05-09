@@ -14,13 +14,8 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
-  const verified = searchParams.get("verified"); 
-{registered && (
-  <div className="mb-4 p-3 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-sm text-center">
-    ✓ Compte créé ! Connectez-vous maintenant.
-  </div>
-)}
-  
+  const verified = searchParams.get("verified");
+  const registered = searchParams.get("registered");
   const errorParam = searchParams.get("error");
 
   const [showPwd, setShowPwd] = useState(false);
@@ -51,7 +46,7 @@ function LoginForm() {
         const newAttempts = attempts + 1;
         setAttempts(newAttempts);
         if (newAttempts >= 3) {
-          setError(`Email ou mot de passe incorrect. ${5 - newAttempts} tentative(s) restante(s) avant blocage temporaire.`);
+          setError(`Email ou mot de passe incorrect. ${5 - newAttempts} tentative(s) restante(s).`);
         } else {
           setError("Email ou mot de passe incorrect.");
         }
@@ -76,6 +71,12 @@ function LoginForm() {
           <h1 className="font-display font-normal text-3xl text-[#F7F3EC] mb-2">Bon retour</h1>
           <p className="text-sm text-[rgba(247,243,236,0.45)] font-light">Connectez-vous à votre communauté</p>
         </div>
+
+        {registered && (
+          <div className="mb-4 p-3 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-sm text-center">
+            ✓ Compte créé ! Connectez-vous maintenant.
+          </div>
+        )}
 
         {verified && (
           <div className="mb-4 p-3 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-sm text-center">
