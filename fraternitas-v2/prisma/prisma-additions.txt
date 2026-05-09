@@ -1,0 +1,35 @@
+// ─── À AJOUTER À LA FIN de fraternitas-v2/prisma/schema.prisma ───────────────
+// Copiez ces deux models et collez-les à la fin du fichier schema.prisma existant
+
+model Defunt {
+  id        String   @id @default(cuid())
+  userId    String
+  prenom    String
+  lien      String?
+  annee     Int?
+  note      String?
+  anonymous Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prayers DefuntPrayer[]
+}
+
+model DefuntPrayer {
+  id        String   @id @default(cuid())
+  defuntId  String
+  userId    String
+  createdAt DateTime @default(now())
+
+  defunt Defunt @relation(fields: [defuntId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([defuntId, userId])
+}
+
+// ─── À AJOUTER aussi dans le model User existant ─────────────────────────────
+// Cherchez "model User {" dans votre schema.prisma et ajoutez ces deux lignes
+// à l'intérieur du model User, après les autres relations :
+
+//   defunts      Defunt[]
+//   defuntPrayers DefuntPrayer[]
