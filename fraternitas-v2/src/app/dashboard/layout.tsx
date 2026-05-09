@@ -1,7 +1,6 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import Link from "next/link";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { DashboardTopNav } from "@/components/dashboard/topnav";
 import { MobileNav } from "@/components/dashboard/mobile-nav";
@@ -10,17 +9,16 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const session = await auth();
   if (!session?.user?.id) redirect("/auth/login");
 
-  // Check onboarding
-  const profile = await prisma.profile.findUnique({
+  await prisma.profile.upsert({
     where: { userId: session.user.id },
-    select: { onboarded: true },
+    update: {},
+    create: {
+      userId: session.user.id,
+      onboarded: true,
+      notificationSettings: { create: {} },
+    },
   });
 
-  if (!profile?.onboarded) {
-    redirect("/dashboard/profile");
-  }
-
-  // Get unread counts
   const [unreadMessages, unreadNotifications] = await Promise.all([
     prisma.conversationMember.count({
       where: {
