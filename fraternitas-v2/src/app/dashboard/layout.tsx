@@ -17,7 +17,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   });
 
   if (!profile?.onboarded) {
-    redirect("/onboarding");
+    redirect("/dashboard/profile");
   }
 
   // Get unread counts
