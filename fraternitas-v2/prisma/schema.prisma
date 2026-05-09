@@ -497,3 +497,32 @@ model IntentionPrayer {
 
   @@unique([intentionId, userId])
 }
+model Defunt {
+  id        String   @id @default(cuid())
+  userId    String
+  prenom    String
+  lien      String?
+  annee     Int?
+  note      String?
+  anonymous Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prayers DefuntPrayer[]
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model DefuntPrayer {
+  id        String   @id @default(cuid())
+  defuntId  String
+  userId    String
+  createdAt DateTime @default(now())
+
+  defunt Defunt @relation(fields: [defuntId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([defuntId, userId])
+  @@index([defuntId])
+}
