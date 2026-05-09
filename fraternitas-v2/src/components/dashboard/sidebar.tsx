@@ -9,7 +9,7 @@ const links = [
   { href: "/dashboard/messages", icon: "💬", label: "Messages", badge: "messages" },
   { href: "/dashboard/notifications", icon: "🔔", label: "Notifications", badge: "notifications" },
   { section: "Communauté" }, 
-  { href: "/dashboard/intentions", icon: "🙏", label: "Intentions" }
+  { href: "/dashboard/intentions", icon: "🙏", label: "Intentions" },
   { href: "/dashboard/events", icon: "🗓️", label: "Événements" },
   { href: "/dashboard/circles", icon: "🏘️", label: "Mes cercles" },
   { href: "/dashboard/members", icon: "👥", label: "Membres proches" },
