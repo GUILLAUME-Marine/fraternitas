@@ -466,3 +466,32 @@ model AuditLog {
   @@index([action])
   @@index([createdAt])
 }
+
+model Intention {
+  id          String    @id @default(cuid())
+  userId      String
+  type        String    @default("PRAYER")
+  text        String
+  massChurch  String?
+  massCity    String?
+  massDate    DateTime?
+  city        String?
+  anonymous   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  expiresAt   DateTime
+
+  user    User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prayers IntentionPrayer[]
+}
+
+model IntentionPrayer {
+  id          String    @id @default(cuid())
+  intentionId String
+  userId      String
+  createdAt   DateTime  @default(now())
+
+  intention Intention @relation(fields: [intentionId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([intentionId, userId])
+}
