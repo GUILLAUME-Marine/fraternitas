@@ -14,7 +14,13 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
-  const verified = searchParams.get("verified");
+  const verified = searchParams.get("verified"); 
+{registered && (
+  <div className="mb-4 p-3 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-sm text-center">
+    ✓ Compte créé ! Connectez-vous maintenant.
+  </div>
+)}
+  
   const errorParam = searchParams.get("error");
 
   const [showPwd, setShowPwd] = useState(false);
