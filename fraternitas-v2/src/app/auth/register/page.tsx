@@ -40,7 +40,7 @@ export default function RegisterPage() {
       });
       const json = await res.json();
       if (!res.ok) { setError(json.error); return; }
-      setSuccess(true);
+      setSuccess(true);setTimeout(() => router.push("/auth/login?registered=true"), 2000);
     } catch {
       setError("Une erreur réseau est survenue.");
     } finally {
