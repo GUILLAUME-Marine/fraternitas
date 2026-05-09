@@ -5,7 +5,8 @@ import { prisma } from "@/lib/prisma";
 // POST /api/defunts/[id]/pray — toggle prière pour un défunt
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+ { params }: { params: Promise<{ id: string }> }
+// Et ensuite : const { id } = await params;
 ) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Non autorisé." }, { status: 401 });
